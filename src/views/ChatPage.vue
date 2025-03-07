@@ -18,7 +18,7 @@
       </div>
       <div class="human-input">
         <el-input v-model="humanInput" style="width: 90%; font-size: 20px" autosize type="textarea"
-          placeholder="给ai客服发送消息" />
+          placeholder="给ai客服发送消息" @keydown="handleEnterDown" />
         <el-button @click="sendChatMessage" :icon="Promotion" :loading="loading" size="large" circle
           style="background-color: #d7d7d7;   " />
       </div>
@@ -61,6 +61,7 @@ if (user.roleName === '管理员') {
 messages.value.push({ text: '您好，我是ai智能客服，请问有什么可以帮您', align: 'left' })
 // 发送信息
 const sendChatMessage = () => {
+  if (loading.value) return
   const message = humanInput.value;
   humanInput.value = '';
   const inputContent = message.trim();
@@ -117,6 +118,19 @@ const fetchChatAIData = async (message: string) => {
     // 控制请求取消的信号
     signal: ctrl.signal
   })
+}
+
+/**
+ * 回车触发发送
+ * @param event 监听
+ */
+const handleEnterDown = async (event) => {
+  const key = event.key;
+  if (key === 'Enter' && event.shiftKey) {
+  }
+  else if (key === 'Enter') {
+    sendChatMessage()
+  }
 }
 
 </script>
