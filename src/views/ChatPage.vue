@@ -1,30 +1,55 @@
 <template>
-  <el-container>
-    <el-header>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>与AI智能客服对话</h2>
-        <el-button v-if="isAdmin" style="margin-right: 2px;"
-          @click="router.push({ name: 'manager' });">返回管理页</el-button>
-        <el-button v-if="!isAdmin" style="margin-right: 2px;" @click="backToLoginPage">退出登录</el-button>
-      </div>
-    </el-header>
-    <el-main>
-      <div class="chat-container">
-        <div v-for="(message, index) in messages" :key="index" :class="['message', message.align]">
-          <el-card>
-            <div v-html="message.text"></div>
-          </el-card>
-        </div>
-      </div>
-      <div class="human-input">
-        <el-input v-model="humanInput" style="width: 90%; font-size: 20px" autosize type="textarea"
-          placeholder="给ai客服发送消息" @keydown="handleEnterDown" />
-        <el-button @click="sendChatMessage" :icon="Promotion" :loading="loading" size="large" circle
-          style="background-color: #d7d7d7;   " />
-      </div>
-      {{ aiMessage }}
-    </el-main>
-  </el-container>
+  <div>
+    <el-container style="height: 100%;">
+      <el-aside width="250px" style="background-color: #f9f9f9;" height="300px">
+        <el-row>
+          <h5 style="margin-left: 30px; margin-top: 20px; width: 100px; font-size: 20px;">房间选择</h5>
+          <el-button style="margin-left: 30px; margin-top: 20px;" round>新对话</el-button>
+        </el-row>
+        <el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose"
+          style="background-color: #f9f9f9;">
+          <el-menu-item index="1">
+            <span>选项1</span>
+          </el-menu-item>
+          <el-menu-item index="2">
+            <span>选项2</span>
+          </el-menu-item>
+          <el-menu-item index="3" disabled>
+            <span>选项3</span>
+          </el-menu-item>
+          <el-menu-item index="4">
+            <span>选项4</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-header>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>与AI智能客服对话</h2>
+            <el-button v-if="isAdmin" style="margin-right: 2px;"
+              @click="router.push({ name: 'manager' });">返回管理页</el-button>
+            <el-button v-if="!isAdmin" style="margin-right: 2px;" @click="backToLoginPage">退出登录</el-button>
+          </div>
+        </el-header>
+        <el-main>
+          <div class="chat-container">
+            <div v-for="(message, index) in messages" :key="index" :class="['message', message.align]">
+              <el-card class="message-card" :style="{ width: '500px', maxWidth: windowWidth - 100 + 'px' }">
+                <div v-html="message.text"></div>
+              </el-card>
+            </div>
+          </div>
+          <div class="human-input">
+            <el-input v-model="humanInput" style="width: 90%; font-size: 20px" autosize type="textarea"
+              placeholder="给ai客服发送消息" @keydown="handleEnterDown" />
+            <el-button @click="sendChatMessage" :icon="Promotion" :loading="loading" size="large" circle
+              style="background-color: #d7d7d7;   " />
+          </div>
+          {{ aiMessage }}
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,7 +57,7 @@ import req from '@/utils/request'
 import { Promotion } from '@element-plus/icons-vue'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { ElMessage } from 'element-plus'
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { v4 } from 'uuid'
 import { backToLoginPage, getToken, getUserFromToken } from '@/utils/jwtUtil'
 import { marked } from 'marked'
@@ -45,14 +70,24 @@ interface Chat {
 
 const conversationId = ref(v4())
 const humanInput = ref('')
-
 const aiMessage = ref('')
-
 const loading = ref(false)
 const messages = ref<Chat[]>([])
-
 const isAdmin = ref(false)
 const user = getUserFromToken()
+const windowWidth = ref(window.screen.width);
+// 处理窗口尺寸变化
+const handleResize = () => {
+  windowWidth.value = window.innerWidth;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize);
+});
 
 if (user.roleName === '管理员') {
   isAdmin.value = true;
@@ -74,7 +109,6 @@ const sendChatMessage = () => {
   loading.value = true;
 
   setTimeout(async () => {
-
     await fetchChatAIData(inputContent)
     loading.value = false;
   }, 2000);
@@ -99,7 +133,8 @@ const fetchChatAIData = async (message: string) => {
     // 监听消息
     async onmessage(event) {
       const data = JSON.parse(event.data)
-      const content = data?.result?.output?.content
+      console.log(data)
+      const content = data?.result?.output?.text
       if (!content) return;
       fromAiMdMsgCache += content;
       fromAiMdMsgCache.replace('\\n', '\n');
@@ -159,6 +194,8 @@ const handleEnterDown = async (event) => {
   align-self: flex-end;
 }
 
+.message-card {}
+
 .human-input {
   position: fixed;
   bottom: 0;
@@ -169,5 +206,22 @@ const handleEnterDown = async (event) => {
   background-color: white;
   padding: 10px;
   border-top: 1px solid #ccc;
+}
+</style>
+
+
+<style>
+pre {
+  background-color: #f9f9f9;
+  border: 1px solid #d4d4d4;
+  border-radius: 20px;
+  padding: 20px;
+  font-size: 14px;
+  overflow: auto;
+  /* 内容超出时显示滚动条 */
+}
+
+pre code {
+  font-family: 'Fira Code';
 }
 </style>
