@@ -5,10 +5,11 @@
       <div class="login-form">
         <el-form :model="formData" ref="formRef" label-position="top" label-width="100px" :rules="rules">
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="formData.username" placeholder="请输入用户名"></el-input>
+            <el-input v-model="formData.username" placeholder="请输入用户名" @keyup.enter="handleLogin(formRef)" />
           </el-form-item>
           <el-form-item label="密码" prop="password">
-            <el-input v-model="formData.password" type="password" placeholder="请输入密码"></el-input>
+            <el-input v-model="formData.password" type="password" placeholder="请输入密码"
+              @keyup.enter="handleLogin(formRef)" />
           </el-form-item>
           <el-link @click="router.push('/sign_up')">
             还未注册？
