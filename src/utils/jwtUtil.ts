@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 import { jwtDecode, type JwtPayload } from 'jwt-decode'
 
 export interface CustomJwtPayload extends JwtPayload {
+  username: string
   roleId: string
   roleName: string
 }
@@ -38,13 +39,14 @@ export function checkToken() {
     console.error('Token 解析错误:', error)
     backToLoginPage() // 解析错误
   }
-  return false;
+  return false
 }
 
 export function getUserFromToken() {
-  const token = getToken();
-  if(!token){
-    return{
+  const token = getToken()
+  if (!token) {
+    return {
+      userId: '',
       username: '',
       roleId: '',
       roleName: '',
@@ -52,7 +54,8 @@ export function getUserFromToken() {
   }
   const payload = jwtDecode<CustomJwtPayload>(token)
   return {
-    username: payload.sub,
+    userId: payload.sub,
+    username: payload.username,
     roleId: payload.roleId,
     roleName: payload.roleName,
   }

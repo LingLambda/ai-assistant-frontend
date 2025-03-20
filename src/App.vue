@@ -1,7 +1,5 @@
 <template>
-
-<RouterView />
-  
+  <RouterView />
 </template>
 
 <script setup lang="ts">
@@ -15,5 +13,4 @@ body {
   box-sizing: border-box;
   font-family: 'Roboto', 'Helvetica', 'Arial', 'Microsoft YaHei', 'SimHei', '宋体', sans-serif;
 }
-
 </style>
