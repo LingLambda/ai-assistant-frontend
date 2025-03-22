@@ -6,7 +6,11 @@
           <h5 style="margin-left: 30px; margin-top: 20px; width: 100px; font-size: 20px;">房间选择</h5>
           <el-button style="margin-left: 30px; margin-top: 20px;" round>新对话</el-button>
         </el-row>
-        <el-menu class="el-menu-vertical-demo" @open="handleOpen" style="background-color: #f9f9f9;">
+        <el-menu class="el-menu-vertical-demo" @open="handleOpen" :default-active="currentRoom"
+          style="background-color: #f9f9f9;">
+          <el-menu-item v-for="(item, index) in roomList" :key="index" index="1">
+            <span>选项1</span>
+          </el-menu-item>
           <el-menu-item index="1">
             <span>选项1</span>
           </el-menu-item>
@@ -61,6 +65,7 @@ import { v4 } from 'uuid'
 import { backToLoginPage, getToken, getUserFromToken } from '@/utils/jwtUtil'
 import { marked } from 'marked'
 import router from '@/router'
+import { getCookie, setCookie } from '@/utils/cookieUtil'
 
 interface Chat {
   text: string
@@ -72,9 +77,15 @@ const humanInput = ref('')
 const aiMessage = ref('')
 const loading = ref(false)
 const messages = ref<Chat[]>([])
-const isAdmin = ref(false)
 const user = getUserFromToken()
+const isAdmin = ref(user.roleName === '管理员')
 const windowWidth = ref(window.screen.width);
+const currentRoom = getCookie('currentRoom')
+const roomList = ref([])
+
+const handleOpen = (key: string) => {
+  setCookie('currentRoom', key)
+}
 
 // 处理窗口尺寸变化
 const handleResize = () => {
@@ -82,13 +93,29 @@ const handleResize = () => {
 };
 onMounted(() => {
   window.addEventListener('resize', handleResize);
+  await queryRoom()
+
+  if (currentRoom) conversationId.value = currentRoom
 });
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
 });
 
-if (user.roleName === '管理员') {
-  isAdmin.value = true;
+const queryRoom = async () => {
+  req.get('/room/query_room')
+    .then((res) => {
+      const code = res.data.code
+      if (code == 200) {
+        roomList.value = res.data.data
+      } else {
+        ElMessage.error(code + " 获取房间列表失败!")
+        console.log(code + " 获取房间列表失败!")
+      }
+    })
+    .catch((err) => {
+      ElMessage.error("获取房间列表失败!", err)
+      console.log("获取房间列表失败!", err)
+    })
 }
 
 messages.value.push({ text: '您好，我是ai智能客服，请问有什么可以帮您', align: 'left' })
@@ -174,9 +201,6 @@ const handleEnterDown = async (event: KeyboardEvent) => {
   }
 }
 
-const handleOpen = (key: string, keyPath: string[]) => {
-  console.log(key, keyPath)
-}
 
 </script>
 

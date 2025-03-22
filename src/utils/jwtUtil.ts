@@ -1,6 +1,7 @@
 import router from '@/router'
 import { ElMessage } from 'element-plus'
 import { jwtDecode, type JwtPayload } from 'jwt-decode'
+import { deleteCookie, getCookie, setCookie } from './cookieUtil'
 
 export interface CustomJwtPayload extends JwtPayload {
   username: string
@@ -10,7 +11,7 @@ export interface CustomJwtPayload extends JwtPayload {
 
 export function getToken(): string {
   try {
-    const token = localStorage.getItem('token')
+    const token = getCookie('token')
     if (token) {
       const payLoad = jwtDecode<JwtPayload>(token)
       if (payLoad && payLoad.exp && Date.now() / 1000 < payLoad.exp) {
@@ -28,7 +29,7 @@ export function getToken(): string {
 
 export function checkToken() {
   try {
-    const token = localStorage.getItem('token') // 例如从localStorage中获取token
+    const token = getCookie('token')
     if (token) {
       const payLoad = jwtDecode<JwtPayload>(token)
       if (payLoad && payLoad.exp && Date.now() / 1000 < payLoad.exp) {
@@ -61,8 +62,12 @@ export function getUserFromToken() {
   }
 }
 
+export function setToken(token: string) {
+  setCookie('token', token, 30)
+}
+
 export async function backToLoginPage() {
   ElMessage.error('令牌已过期')
-  localStorage.removeItem('token')
+  deleteCookie('token')
   router.push({ name: 'login' })
 }

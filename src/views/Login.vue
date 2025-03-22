@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { getUserFromToken } from '@/utils/jwtUtil';
+import { getUserFromToken, setToken } from '@/utils/jwtUtil';
 import req from '@/utils/request';
 import { ElMessage, type FormInstance } from 'element-plus';
 import { ref } from 'vue';
@@ -56,7 +56,7 @@ const handleLogin = async (formEl: FormInstance) => {
         .then((res) => {
           switch (res.data.code) {
             case 200:
-              localStorage.setItem("token", res.data.data);
+              setToken(res.data.data)
               if (getUserFromToken().roleName == '管理员') {
                 router.push('/')
               } else {

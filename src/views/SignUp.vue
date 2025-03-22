@@ -10,7 +10,7 @@
           <el-form-item label="密码" prop="password">
             <el-input v-model="formData.password" type="password" placeholder="请输入密码"></el-input>
           </el-form-item>
-          <el-link @click="router.push('/login')"  >
+          <el-link @click="router.push('/login')">
             已有账号？
           </el-link>
           <el-form-item>
@@ -23,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import { setToken } from '@/utils/jwtUtil';
 import req from '@/utils/request';
 import { ElMessage, type FormInstance } from 'element-plus';
 import { ref } from 'vue';
@@ -52,7 +53,7 @@ const handleLogin = async (formEl: FormInstance) => {
         .then((res) => {
           switch (res.data.code) {
             case 200:
-              localStorage.setItem("token", res.data.data);
+              setToken(res.data.data)
               ElMessage.success('注册成功，请登录')
               router.push('/login')
               break;
@@ -124,7 +125,7 @@ const handleLogin = async (formEl: FormInstance) => {
 /* 右对齐忘记密码链接 */
 .forgot-password-container {
   display: flex;
-  justify-content: flex-end; /* 使链接右对齐 */
+  justify-content: flex-end;
+  /* 使链接右对齐 */
 }
-
 </style>

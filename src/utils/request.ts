@@ -8,10 +8,10 @@ const req = axios.create({
 // 添加请求拦截器
 req.interceptors.request.use(
   async function (config) {
-    const token = await getToken()
+    const token = getToken()
     if (token) {
       config.headers['Authorization'] = token
-    } 
+    }
     return config
   },
   function (error) {
