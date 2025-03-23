@@ -4,24 +4,12 @@
       <el-aside width="250px" style="background-color: #f9f9f9; height: 100vh;">
         <el-row>
           <h5 style="margin-left: 30px; margin-top: 20px; width: 100px; font-size: 20px;">房间选择</h5>
-          <el-button style="margin-left: 30px; margin-top: 20px;" round>新对话</el-button>
+          <el-button style="margin-left: 30px; margin-top: 20px;" @click="clickNewDialog" round>新对话</el-button>
         </el-row>
-        <el-menu class="el-menu-vertical-demo" @open="handleOpen" :default-active="currentRoom"
+        <el-menu class="el-menu-vertical-demo" @select="handleSelect" :default-active="conversationId"
           style="background-color: #f9f9f9;">
-          <el-menu-item v-for="(item, index) in roomList" :key="index" index="1">
-            <span>选项1</span>
-          </el-menu-item>
-          <el-menu-item index="1">
-            <span>选项1</span>
-          </el-menu-item>
-          <el-menu-item index="2">
-            <span>选项2</span>
-          </el-menu-item>
-          <el-menu-item index="3" disabled>
-            <span>选项3</span>
-          </el-menu-item>
-          <el-menu-item index="4">
-            <span>选项4</span>
+          <el-menu-item v-for="room in roomList" :key="room.id" :index="room.id">
+            <span>{{ room.title }}</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -35,11 +23,15 @@
           </div>
         </el-header>
         <el-main id="main-chat">
-          <div class="chat-container" style="height: auto;">
+          <div class="chat-container" ref='containerRef'>
             <div v-for="(message, index) in messages" :key="index" :class="['message', message.align]">
               <el-card class="message-card" :style="{ width: '500px', maxWidth: windowWidth - 100 + 'px' }">
                 <div v-html="message.text"></div>
               </el-card>
+            </div>
+            <div v-if="messages.length === 0"
+              style="position: absolute;left: 50%;top: 50%; transform: translate(-50%,-50%);">
+              <h1>招生咨询相关问题都可以问我！</h1>
             </div>
           </div>
           <div class="human-input-box">
@@ -60,7 +52,7 @@ import req from '@/utils/request'
 import { Promotion } from '@element-plus/icons-vue'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { ElMessage } from 'element-plus'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { v4 } from 'uuid'
 import { backToLoginPage, getToken, getUserFromToken } from '@/utils/jwtUtil'
 import { marked } from 'marked'
@@ -71,8 +63,16 @@ interface Chat {
   text: string
   align: string
 }
+interface Room {
+  id: string,
+  createTime?: Date,
+  updateTIme?: Date,
+  userId?: bigint,
+  title: string
+}
 
-const conversationId = ref(v4())
+
+const conversationId = ref()
 const humanInput = ref('')
 const aiMessage = ref('')
 const loading = ref(false)
@@ -80,32 +80,50 @@ const messages = ref<Chat[]>([])
 const user = getUserFromToken()
 const isAdmin = ref(user.roleName === '管理员')
 const windowWidth = ref(window.screen.width);
-const currentRoom = getCookie('currentRoom')
-const roomList = ref([])
+const roomList = ref<Room[]>([])
+const containerRef = ref<Ref>(null);
 
-const handleOpen = (key: string) => {
-  setCookie('currentRoom', key)
+/**
+ * 点击房间时，在cookie设置currentRoom为房间id，并查询房间消息
+ * @param id
+ */
+const handleSelect = async (id: string) => {
+  conversationId.value = id
+  queryRoomMessage()
 }
 
 // 处理窗口尺寸变化
 const handleResize = () => {
   windowWidth.value = window.innerWidth;
 };
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', handleResize);
-  await queryRoom()
 
-  if (currentRoom) conversationId.value = currentRoom
+  queryRoomList()
+
+  conversationId.value = getCookie('currentRoom')
+
+  queryRoomMessage()
 });
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
 });
 
-const queryRoom = async () => {
+//将ref = container的滚动条滚到底
+const scrollToBottom = () => {
+  if (containerRef.value) {
+    containerRef.value.scrollTop = containerRef.value.scrollTopMax;
+  }
+}
+
+/**
+ * 从后端获取房间列表并填充至 roomList
+ */
+const queryRoomList = async () => {
   req.get('/room/query_room')
     .then((res) => {
       const code = res.data.code
-      if (code == 200) {
+      if (res.data.code == 200) {
         roomList.value = res.data.data
       } else {
         ElMessage.error(code + " 获取房间列表失败!")
@@ -118,8 +136,38 @@ const queryRoom = async () => {
     })
 }
 
-messages.value.push({ text: '您好，我是ai智能客服，请问有什么可以帮您', align: 'left' })
-// 发送信息
+/**
+ * 从后端获取当前房间消息并填充至 messages
+ */
+const queryRoomMessage = async () => {
+  req.get(`/room/query_room_message?conversationId=${conversationId.value}`)
+    .then((res) => {
+      const code = res.data.code
+      if (res.data.code == 200) {
+        const messageList = res.data.data
+        for (const message of messageList) {
+          switch (message.messageType) {
+            case 'user': {
+              messages.value.push({ text: message.message, align: 'right' })
+              break;
+            }
+            case 'assistant': {
+              messages.value.push({ text: message.message, align: 'left' })
+              break;
+            }
+          }
+        }
+      } else {
+        ElMessage.error(code + " 获取房间消息列表失败!")
+        console.log(code + " 获取房间消息列表失败!")
+      }
+    }).finally(() => {
+      scrollToBottom()
+    })
+}
+
+
+// 发送信息 并设置cookie 当前房间
 const sendChatMessage = () => {
   if (loading.value) return
   const message = humanInput.value;
@@ -132,6 +180,8 @@ const sendChatMessage = () => {
 
   messages.value.push({ text: message, align: 'right' })
   loading.value = true;
+
+  setCookie('currentRoom', conversationId.value)
 
   fetchChatAIData(inputContent)
 };
@@ -152,6 +202,7 @@ const fetchChatAIData = async (message: string) => {
     console.log("请求超时");
     ctrl.abort()
   }, 30000);
+
   fetchEventSource(`${baseURL}/chat/vec_chat?message=${message}&conversationId=${conversationId.value}`, {
     headers: {
       "Content-Type": "application/json",
@@ -170,6 +221,10 @@ const fetchChatAIData = async (message: string) => {
     },
     // 关闭
     onclose() {
+      if (messages.value.length === 2) {
+        summaryTitle()
+      }
+
       console.log("连接正常关闭");
     },
     // 错误
@@ -183,6 +238,7 @@ const fetchChatAIData = async (message: string) => {
   }).finally(() => {
     clearTimeout(timeout);
     ctrl.abort()
+    scrollToBottom()
     loading.value = false;
   })
 }
@@ -201,19 +257,43 @@ const handleEnterDown = async (event: KeyboardEvent) => {
   }
 }
 
+const summaryTitle = async () => {
+  req.get(`/chat/summary?conversationId=${conversationId.value}`)
+    .then((res) => {
+      if (res.data.code == 200) {
+        for (const room of roomList.value) {
+          if (room.id == conversationId.value) {
+            room.title = res.data.data
+          }
+        }
+      } else {
+        ElMessage.error(res.data.message)
+        console.log(res.data.message)
+      }
+    })
+    .catch((err) => {
+      ElMessage.error(err)
+      console.log(err)
+    })
+}
 
+const clickNewDialog = async () => {
+  conversationId.value = v4()
+  messages.value = []
+  roomList.value.unshift({ id: conversationId.value, title: '新对话' })
+}
 </script>
 
 <style scoped>
 .chat-container {
+  height: auto;
   display: flex;
   flex-direction: column;
+  padding-bottom: 20px;
   gap: 10px;
-  padding-bottom: 80px;
+  overflow-y: scroll;
   /* 为了避免输入框遮挡最后一条消息 */
-  overflow-y: auto;
-  max-height: calc(100vh - 120px);
-  /* 根据实际布局调整 */
+  max-height: calc(100vh - 210px);
 }
 
 .message {
@@ -239,7 +319,7 @@ const handleEnterDown = async (event: KeyboardEvent) => {
   position: absolute;
   /* 相对于父元素定位 */
   left: 50%;
-  /* 使子元素自身的宽高各偏移一半，从而居中 */
+  /* 使子元素自身的宽偏移一半*/
   transform: translate(-50%);
   bottom: 20px;
   width: 800px;
