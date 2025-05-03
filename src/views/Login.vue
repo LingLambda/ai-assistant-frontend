@@ -57,7 +57,7 @@ const handleLogin = async (formEl: FormInstance) => {
           switch (res.data.code) {
             case 200:
               setToken(res.data.data)
-              if (getUserFromToken().roleName == '管理员') {
+              if (getUserFromToken().roleId >= 2) {
                 router.push('/')
               } else {
                 router.push({ name: 'chat' })
