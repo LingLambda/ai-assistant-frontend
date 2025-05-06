@@ -8,6 +8,10 @@ import Header from '@/components/Header.vue'
 import ChatPage from '@/views/ChatPage.vue'
 import { checkToken, getUserFromToken } from '@/utils/jwtUtil'
 import ManagerPage from '@/views/ManagerPage.vue'
+import UserManagement from '@/views/UserManagement.vue'
+import SystemLog from '@/views/SystemLog.vue'
+import Analytics from '@/views/Analytics.vue'
+import VectorSearchPage from '@/views/VectorSearchPage.vue'
 
 const routes = [
   {
@@ -29,6 +33,26 @@ const routes = [
         path: 'search',
         name: 'search',
         component: SearchPage,
+      },
+      {
+        path: 'vector-search',
+        name: 'vector-search',
+        component: VectorSearchPage,
+      },
+      {
+        path: 'user-management',
+        name: 'user-management',
+        component: UserManagement,
+      },
+      {
+        path: 'system-log',
+        name: 'system-log',
+        component: SystemLog,
+      },
+      {
+        path: 'analytics',
+        name: 'analytics',
+        component: Analytics,
       },
     ],
   },
