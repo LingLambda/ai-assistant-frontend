@@ -55,7 +55,7 @@ import { ElMessageBox } from 'element-plus';
 const jsonTemplate = () => {
   ElMessageBox.alert(`<pre style="color: #333; background-color: #f8f8f8; padding: 15px; border-radius: 5px; font-family: monospace; line-height: 1.5;">
 {
-  <span style="color: #0366d6;">"date"</span>: <span style="color: #032f62;">"2024-12-31"</span>,
+  <span style="color: #0366d6;">"date"</span>: <span style="color: #032f62;">"2025-12-31"</span>,
   <span style="color: #0366d6;">"city"</span>: <span style="color: #032f62;">"Beijing"</span>,
   <span style="color: #0366d6;">"temperature"</span>: {
     <span style="color: #0366d6;">"min"</span>: <span style="color: #005cc5;">-5.2</span>,

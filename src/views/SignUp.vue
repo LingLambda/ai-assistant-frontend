@@ -44,7 +44,7 @@
       </el-card>
     </div>
     <div class="signup-footer">
-      <p>© 2024 AI客服平台 · 技术支持</p>
+      <p>© 2025 AI客服平台 · 技术支持</p>
     </div>
   </div>
 </template>

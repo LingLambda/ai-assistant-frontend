@@ -180,7 +180,7 @@ const logStats = reactive({
 const logList = ref([
   {
     id: 1001,
-    time: '2024-03-15 16:30:45',
+    time: '2025-03-15 16:30:45',
     username: 'admin',
     ip: '192.168.1.100',
     module: '用户管理',
@@ -192,7 +192,7 @@ const logList = ref([
   },
   {
     id: 1000,
-    time: '2024-03-15 16:28:12',
+    time: '2025-03-15 16:28:12',
     username: 'admin',
     ip: '192.168.1.100',
     module: '系统设置',
@@ -204,7 +204,7 @@ const logList = ref([
   },
   {
     id: 999,
-    time: '2024-03-15 15:45:30',
+    time: '2025-03-15 15:45:30',
     username: 'user1',
     ip: '192.168.1.101',
     module: '知识库',
@@ -216,7 +216,7 @@ const logList = ref([
   },
   {
     id: 998,
-    time: '2024-03-15 14:20:15',
+    time: '2025-03-15 14:20:15',
     username: 'system',
     ip: '127.0.0.1',
     module: '系统',
@@ -228,7 +228,7 @@ const logList = ref([
   },
   {
     id: 997,
-    time: '2024-03-15 13:10:05',
+    time: '2025-03-15 13:10:05',
     username: 'user2',
     ip: '192.168.1.102',
     module: 'API',

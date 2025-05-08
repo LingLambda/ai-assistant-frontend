@@ -55,7 +55,7 @@
       <div class="version-info">
         <span>版本: v1.2.3</span>
         <span class="dot-separator">•</span>
-        <span>©2023-2024 LingLambda</span>
+        <span>©2025 LingLambda</span>
       </div>
     </div>
 
